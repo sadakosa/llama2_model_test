@@ -1,2 +1,4 @@
 env/
 logger/logs
+config/config.yaml
+node_modules/
