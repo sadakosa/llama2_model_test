@@ -1,3 +1,56 @@
+import os
+from groq import Groq
+import json
+
+
+class GroqClient:
+    def __init__(self, api_key_input, logger):
+        try:
+            self.client = Groq(api_key=api_key_input)
+            self.logger = logger
+        except Exception as e:
+            print(f"Error initializing Groq client: {e}")
+            raise
+
+    def query(self, user_input, temperature=0.34):
+        try:
+            chat_completion = self.client.chat.completions.create(
+                messages=user_input,
+                model="llama3-8b-8192",
+                temperature=temperature,
+                max_tokens=1024,
+                stream=False,
+                response_format={"type": "json_object"},
+            )
+            response = chat_completion.choices[0].message.content
+            response_json = json.loads(response)
+            # print(response_json)
+            return response_json
+        except Exception as e:
+            print(f"Error during query: {e}")
+            logger.log_message("Error during query: {e}")
+            return "An error occurred during the query. Please try again later."
+
+
+    # def chatbot(self, system_instructions=""):
+    #     conversation = [{"role": "system", "content": system_instructions}]
+    #     while True:
+    #         user_input = input("User: ")
+    #         if user_input.lower() in ["exit", "quit"]:
+    #             print("Exiting the chatbot. Goodbye!")
+    #             break
+    #         response, conversation = self.get_response(user_input, conversation)
+    #         print(f"Assistant: {response}")
+
+
+
+
+
+
+
+
+
+
 # import torch
 # import transformers
 
@@ -41,48 +94,3 @@
 # if __name__ == "__main__":
 #     bot = Llama3("meta-llama/Meta-Llama-3-8B-Instruct")
 #     bot.chatbot("you are a child, curious and always looking to ask questions.")
-
-
-
-import os
-from groq import Groq
-import json
-
-
-class GroqClient:
-    def __init__(self, api_key_input):
-        try:
-            self.client = Groq(api_key=api_key_input)
-        except Exception as e:
-            print(f"Error initializing Groq client: {e}")
-            raise
-
-    def query(self, user_input, temperature=0.34):
-        try:
-            chat_completion = self.client.chat.completions.create(
-                messages=user_input,
-                model="llama3-8b-8192",
-                temperature=temperature,
-                max_tokens=1024,
-                stream=False,
-                response_format={"type": "json_object"},
-            )
-            response = chat_completion.choices[0].message.content
-            response_json = json.loads(response)
-            # print(response_json)
-            return response_json
-        except Exception as e:
-            print(f"Error during query: {e}")
-            return "An error occurred during the query. Please try again later."
-
-
-    # def chatbot(self, system_instructions=""):
-    #     conversation = [{"role": "system", "content": system_instructions}]
-    #     while True:
-    #         user_input = input("User: ")
-    #         if user_input.lower() in ["exit", "quit"]:
-    #             print("Exiting the chatbot. Goodbye!")
-    #             break
-    #         response, conversation = self.get_response(user_input, conversation)
-    #         print(f"Assistant: {response}")
-
