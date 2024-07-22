@@ -90,7 +90,7 @@ def get_papers_to_clean(db_client, search_term, batch_size):
     select_query = """
     SELECT ss_id, title, abstract, is_cleaned
     FROM papers
-    WHERE is_cleaned = FALSE AND is_processed = TRUE AND search_term = %s
+    WHERE is_cleaned = FALSE AND search_term = %s
     LIMIT %s;
     """
     cursor = db_client.execute(select_query, (search_term, batch_size))
