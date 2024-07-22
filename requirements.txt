@@ -1,6 +1,1 @@
 mlx-lm==0.15.3
-torch==2.3.0
-transformers==4.40.1
-datasets==2.19.0
-pandas==2.2.2
-pyspellchecker
