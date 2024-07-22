@@ -156,7 +156,7 @@ def main():
     for search_term in search_terms[start_term:end_term]:
         logger.log_message(f"Cleaning papers for search term: {search_term[0]}")
         print(f"Cleaning papers for search term: {search_term[0]}")
-        clean_data(logger, model_obj, db_client, search_term[0], 10) 
+        clean_data(logger, model_obj, db_client, search_term[0], 200) 
 
-if __name__ == "__main__":
+if __name__ == "__main_llm__":
     main()
