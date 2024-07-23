@@ -1,3 +1,32 @@
+from psycopg2.extras import execute_values
+
+# ======================== TABLE CREATION ========================
+
+# create concepts table
+def create_concepts_table(db_client):
+    create_table_query = """
+    CREATE TABLE IF NOT EXISTS concepts (
+        id SERIAL PRIMARY KEY,
+        concept TEXT NOT NULL UNIQUE
+    );
+    """
+    db_client.execute(create_table_query)
+    db_client.commit()
+
+# create concepts_papers table
+def create_paper_concept_table(db_client):
+    create_table_query = """
+    CREATE TABLE IF NOT EXISTS paper_concept_edges (
+        concept_id INTEGER NOT NULL,
+        ss_id TEXT NOT NULL,
+        weight NUMERIC NOT NULL,
+        CONSTRAINT fk_concept FOREIGN KEY(concept_id) REFERENCES concepts(id),
+        CONSTRAINT fk_paper FOREIGN KEY(ss_id) REFERENCES papers(ss_id),
+        PRIMARY KEY (ss_id, concept_id)
+    );
+    """
+    db_client.execute(create_table_query)
+    db_client.commit()
 
 
 
@@ -41,9 +70,7 @@ def update_is_cleaned(db_client, ss_id):
     db_client.execute(update_query, (ss_id,))
     db_client.commit()
 
-def update_cleaned_papers(db_client, papers):
-    from psycopg2.extras import execute_values
-    
+def batch_update_cleaned_papers(db_client, papers):
     # Construct the update query
     update_query = """
     UPDATE papers AS p
@@ -57,14 +84,43 @@ def update_cleaned_papers(db_client, papers):
     # Execute the batch update
     execute_values(db_client.cur, update_query, papers)
     db_client.commit()
-
-
 # papers = [
 #     ('ss_id_1', 'Cleaned Title 1', 'Cleaned Abstract 1', True),
 #     ('ss_id_2', 'Cleaned Title 2', 'Cleaned Abstract 2', True),
 #     ('ss_id_3', 'Cleaned Title 3', 'Cleaned Abstract 3', True),
 #     # More records
 # ]
+
+
+def batch_insert_concepts(db_client, concepts):
+    # Construct the insert query
+    insert_query = """
+    INSERT INTO concepts (concept)
+    VALUES %s
+    ON CONFLICT (concept) DO NOTHING
+    RETURNING id, concept;
+    """
+    
+    # Execute the batch insert
+    execute_values(db_client.cur, insert_query, [(concept,) for concept in concepts])
+    db_client.execute("SELECT id, concept FROM concepts WHERE concept = ANY(%s);", (list(concepts),))
+    inserted_concepts = db_client.cur.fetchall()
+    db_client.commit()
+    return {concept: id for id, concept in inserted_concepts}
+
+
+def batch_insert_concept_edges(db_client, concept_edges):
+    # Construct the insert query
+    insert_query = """
+    INSERT INTO paper_concept_edges (concept_id, ss_id, weight)
+    VALUES %s
+    ON CONFLICT (ss_id, concept_id) DO NOTHING;
+    """
+    
+    # Execute the batch insert
+    execute_values(db_client.cur, insert_query, concept_edges)
+    db_client.commit()
+
 
 # ======================== SELECTION OPERATIONS ========================
 

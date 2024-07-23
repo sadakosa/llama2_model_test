@@ -38,56 +38,25 @@ def get_search_terms():
 # ====================================================================================================
 # Checkpoint Functions
 # ====================================================================================================
+import json
+import os
 
-CHECKPOINT_FILE_SEARCH = 'checkpoint.json'
-CHECKPOINT_FILE_API = 'checkpoint_api.json'
+CHECKPOINT_FILE = 'checkpoint.json'
 
-def save_checkpoint_scrape(search_term, current_page, last_processed_item):
+def save_checkpoint(search_term_index, cleaned_papers_list, concept_edges_list):
     checkpoint = {
-        'search_term': search_term,
-        'current_page': current_page,
-        'last_processed_item': last_processed_item
+        'search_term_index': search_term_index,
+        'cleaned_papers': cleaned_papers_list,
+        'concept_edges': concept_edges_list
     }
-    with open(CHECKPOINT_FILE_SEARCH, 'w') as file:
-        json.dump(checkpoint, file)
+    with open(CHECKPOINT_FILE, 'w') as f:
+        json.dump(checkpoint, f)
 
-def load_checkpoint_scrape():
-    if os.path.exists(CHECKPOINT_FILE_SEARCH):
-        with open(CHECKPOINT_FILE_SEARCH, 'r') as file:
-            return json.load(file)
-    return None
-
-def remove_checkpoint_scrape():
-    if os.path.exists(CHECKPOINT_FILE_SEARCH):
-        os.remove(CHECKPOINT_FILE_SEARCH)
-    
-
-
-
-
-# def load_checkpoint_references():
-#     if os.path.exists(CHECKPOINT_FILE):
-#         with open(CHECKPOINT_FILE, 'r') as file:
-#             return json.load(file)
-#     return None
-
-def load_checkpoint_references():
-    if os.path.exists(CHECKPOINT_FILE_API):
-        with open(CHECKPOINT_FILE_API, 'r') as file:
-            try:
-                return json.load(file)
-            except json.JSONDecodeError as e:
-                print(f"Error loading JSON from checkpoint file: {e}")
-                return None
-    return None
-
-def save_checkpoint_references(checkpoint):
-    with open(CHECKPOINT_FILE_API, 'w') as file:
-        json.dump(checkpoint, file)
-
-def remove_checkpoint_references():
-    if os.path.exists(CHECKPOINT_FILE_API):
-        os.remove(CHECKPOINT_FILE_API)
-
-
+def load_checkpoint(start_term_input):
+    if os.path.exists(CHECKPOINT_FILE):
+        with open(CHECKPOINT_FILE, 'r') as f:
+            checkpoint = json.load(f)
+            return checkpoint['search_term_index'], checkpoint['cleaned_papers'], checkpoint['concept_edges']
+    else:
+        return start_term_input, [], []  # Start from the beginning if no checkpoint exists
 

@@ -8,9 +8,30 @@ class GroqClient:
         try:
             self.client = Groq(api_key=api_key_input)
             self.logger = logger
+            print("Groq client initialized")
         except Exception as e:
             print(f"Error initializing Groq client: {e}")
             raise
+
+    # def query(self, user_input, temperature=0.34):
+    #     try:
+    #         chat_completion = self.client.chat.completions.create(
+    #             messages=user_input,
+    #             model="llama3-8b-8192",
+    #             temperature=temperature,
+    #             max_tokens=1024,
+    #             stream=False,
+    #             response_format={"type": "json_object"},
+    #         )
+    #         response = chat_completion.choices[0].message.content
+    #         response_json = json.loads(response)
+    #         # print(response_json)
+    #         return response_json
+    #     except Exception as e:
+    #         print(f"Error during query: {e}")
+    #         self.logger.log_message("Error during query: {e}")
+    #         return "An error occurred during the query. Please try again later."
+
 
     def query(self, user_input, temperature=0.34):
         try:
@@ -23,13 +44,18 @@ class GroqClient:
                 response_format={"type": "json_object"},
             )
             response = chat_completion.choices[0].message.content
-            response_json = json.loads(response)
-            # print(response_json)
-            return response_json
+            
+            try:
+                response_json = json.loads(response)
+                return response_json
+            except json.JSONDecodeError as json_err:
+                print(f"JSON decode error: {json_err}")
+                self.logger.log_message(f"JSON decode error: {json_err}")
+                return {"error": "Invalid JSON response"}
         except Exception as e:
             print(f"Error during query: {e}")
-            logger.log_message("Error during query: {e}")
-            return "An error occurred during the query. Please try again later."
+            self.logger.log_message(f"Error during query: {e}")
+            return {"error": "An error occurred during the query. Please try again later."}
 
 
     # def chatbot(self, system_instructions=""):

@@ -2,3 +2,4 @@ env/
 logger/logs
 config/config.yaml
 node_modules/
+checkpoint.json
