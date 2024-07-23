@@ -146,13 +146,13 @@ def clean_paper(logger, model_obj, paper):
 
 
 
-def clean_data(logger, model_obj, dbclient, search_term, batch_size, search_term_index, cleaned_papers_checkpoint, concept_edges_checkpoint):
+def clean_data(logger, model_obj, dbclient, dbclient_read, search_term, batch_size, search_term_index, cleaned_papers_checkpoint, concept_edges_checkpoint):
     cleaned_papers_list = cleaned_papers_checkpoint
     concept_edges_list = concept_edges_checkpoint
 
     while True:
         # get papers from db (ss_id, title_cleaned, abstract_cleaned, is_cleaned)
-        papers = db_operations.get_papers_to_clean(dbclient, search_term, batch_size)
+        papers = db_operations.get_papers_to_clean(dbclient_read, search_term, batch_size)
 
         if not papers:
             break  # No more papers to clean
@@ -273,7 +273,7 @@ def main():
     for idx, search_term in enumerate(search_terms[start_term:end_term], start=start_term):
         logger.log_message(f"Cleaning papers for search term: {search_term[0]}")
         print(f"Cleaning papers for search term: {search_term[0]}")
-        clean_data(logger, model_obj, dbclient, search_term[0], batch_size, idx, cleaned_papers_checkpoint, concept_edges_checkpoint)
+        clean_data(logger, model_obj, dbclient, dbclient_read, search_term[0], batch_size, idx, cleaned_papers_checkpoint, concept_edges_checkpoint)
 
         # Reset checkpoint for the next search term
         cleaned_papers_checkpoint = []
