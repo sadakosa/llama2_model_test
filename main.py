@@ -149,6 +149,8 @@ def clean_paper(logger, model_obj, paper):
 def clean_data(logger, model_obj, dbclient, dbclient_read, search_term, batch_size, search_term_index, cleaned_papers_checkpoint, concept_edges_checkpoint):
     cleaned_papers_list = cleaned_papers_checkpoint
     concept_edges_list = concept_edges_checkpoint
+    processed_paper_ids = {paper[0] for paper in cleaned_papers_checkpoint}
+
 
     while True:
         # get papers from db (ss_id, title_cleaned, abstract_cleaned, is_cleaned)
@@ -159,6 +161,12 @@ def clean_data(logger, model_obj, dbclient, dbclient_read, search_term, batch_si
 
         # clean papers
         for paper in papers:
+
+            if paper[0] in processed_paper_ids:
+                logger.log_message(f"Skipping already processed paper: {paper[0]}")
+                print(f"Skipping already processed paper: {paper[0]}")
+                continue  # Skip already processed papers
+
             logger.log_message(f"Cleaning paper: {paper}")
             cleaned_paper_response = clean_paper(logger, model_obj, paper)
             if cleaned_paper_response is None:
@@ -170,6 +178,11 @@ def clean_data(logger, model_obj, dbclient, dbclient_read, search_term, batch_si
             concept_edges = cleaned_paper_response['concept_edges']
             concept_edges_list.append(concept_edges)  # concept_edges is a tuple (['concept1','concept2'], [10,5])
     
+            # =================== save checkpoint ==================
+            save_checkpoint(search_term_index, cleaned_papers_list, concept_edges_list)
+            print(f"Checkpoint saved for search term: {search_term_index}")
+
+
         # ============== batch insert concepts and concept_edges ==============
         unique_concepts = {concept for edges in concept_edges_list for concept in edges[0]}
         # unique_concepts = {d[1] for d in concept_edges_list} # Extract unique concepts
@@ -192,10 +205,11 @@ def clean_data(logger, model_obj, dbclient, dbclient_read, search_term, batch_si
         # ============== update papers as a batch ==============
         db_operations.batch_update_cleaned_papers(dbclient, cleaned_papers_list)
 
-        # =================== save checkpoint ==================
-        save_checkpoint(search_term_index, cleaned_papers_list, concept_edges_list)
-        print(f"Checkpoint saved for search term: {search_term_index}")
+        # # =================== save checkpoint ==================
+        # save_checkpoint(search_term_index, cleaned_papers_list, concept_edges_list)
+        # print(f"Checkpoint saved for search term: {search_term_index}")
         cleaned_papers_list = []
+        concept_edges_list = []
 
 
         # Check if the number of papers fetched is less than the batch size
