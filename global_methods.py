@@ -18,7 +18,8 @@ def get_text_from_file(file_path):
     return content
 
 def get_search_terms():
-    csv_file_path = 'search_terms.csv'
+    # csv_file_path = 'search_terms.csv'
+    csv_file_path = 'search_terms_curated.csv'
     search_terms = []
 
     with open(csv_file_path, mode='r') as file: # open the csv file, read
